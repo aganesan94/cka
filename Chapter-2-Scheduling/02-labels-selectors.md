@@ -1,0 +1,1 @@
+Refer to CKAD Exam on labels and selectors
