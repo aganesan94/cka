@@ -14,3 +14,31 @@ What is etcd?
 
 * All information related to the cluster is stored in etcd
 * When it is setup in a cluster, each etcd should know about the other nodes in the cluster which is configured in the --initial-cluster parameter
+
+### ETCD v2
+
+```shell
+./etcdctl
+./etcdctl set key1 value1
+./etcdctl get key1
+./etcdctl --version
+```
+### ETCD v3
+
+```shell
+# Setting a particular version of ETCDCTL
+export ETCDCTL_API=3
+./etcdctl put key1 value1
+./etcdctl get key1
+```
+### Provides the etcd master information
+
+```shell
+kubectl get pods -n kube-system
+```
+
+### Get information about all the keys in the registry
+
+```shell
+kubectl exec etcd-master -n kube-system etcdctl get / --prefix -keys-only
+```

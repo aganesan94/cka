@@ -13,3 +13,10 @@ The following components *DO NOT* have the same version as the k8s version when 
 
 * etcd
 * coredns
+
+```shell
+
+# Shows major.minor.patch version
+kubectl version
+
+```
