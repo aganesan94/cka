@@ -37,6 +37,9 @@ export ETCDCTL_API=3
 For example, if you want to take a snapshot of etcd, use:
 
 ```shell
+# Ensure the right etcd version is installed
+ kubectl -n kube-system logs etcd-controlplane | grep -i 'etcd-version'
+
 # -h and keep a note of the mandatory global options.
 ETCDCTL_API=3 etcdctl snapshot save <databasefile>
 
