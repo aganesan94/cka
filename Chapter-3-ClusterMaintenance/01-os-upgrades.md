@@ -17,7 +17,6 @@ Note: Creating a replicaset is ideal.
 
 ```shell
 # Drains all the pods on one node and can be used to recreate them on another node
-# Ensure the node is cordoned and marked as unscheduled
 # The drain node does not work if the node has pods which are not created as a part of the replicaset
 kubectl  drain node --ignore-daemonsets
 ```
@@ -28,6 +27,6 @@ kubectl uncordon node
 ```
 
 ```shell
-# Marking a schedule unschedulable
+# Marking a schedule unschedulable, no new pods are added to this node
 kubectl cordon node
 ```
