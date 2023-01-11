@@ -12,15 +12,7 @@
 * All access to K8 cluster is managed thru kube api server.
 
 
-### Actors 
-
-- Admins
-- Developers
-- End Users
-- Bots
-
-
-#### Authentication
+#### Authentication - Who can access the cluster?
 
 * Usernames & Passwords
 * Username & Tokens
@@ -31,7 +23,7 @@
 * Kubernetes does not have the concept called users.
 * Kube-api-server manages using the above provided authentication mechanisms
 
-#### Authorization
+#### Authorization - What can they do after authentication is successful?
 
 * RBAC Authorization
 * ABAC Authorization
@@ -47,3 +39,10 @@
 - Kube Proxy
 - Kube Scheduler
 - Kube Controller Manager
+
+### Actors
+
+- Admins
+- Developers
+- End Users
+- Bots
