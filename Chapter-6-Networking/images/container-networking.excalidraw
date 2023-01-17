@@ -1,0 +1,46 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "zmoVMLnKOei-5LSzuaukE",
+      "type": "text",
+      "x": 284,
+      "y": 155,
+      "width": 307,
+      "height": 75,
+      "angle": 0,
+      "strokeColor": "#d9480f",
+      "backgroundColor": "transparent",
+      "fillStyle": "hachure",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "roundness": null,
+      "seed": 113691805,
+      "version": 34,
+      "versionNonce": 1188057523,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1673957373594,
+      "link": null,
+      "locked": false,
+      "text": "Container Networking Interface\n\n",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "baseline": 68,
+      "containerId": null,
+      "originalText": "Container Networking Interface\n\n"
+    }
+  ],
+  "appState": {
+    "gridSize": null,
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}
