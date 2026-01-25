@@ -55,6 +55,10 @@ Query and result:
   $[3] - ["bike"]
   $[0,3] - ["car","bike"]
   $[0:2] - ["car","bus","truck"]
+  $[0:2:2] - ["car","truck"]
+  $[-1] - last index in the array
+  $[-1:0] - start from the last element all the way to the end.
+  $[-3:0] - last 3 elements , same as $[-3] or $[-3:]
 ```
 
 ---
