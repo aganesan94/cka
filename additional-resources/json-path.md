@@ -115,11 +115,9 @@ $.car.wheels[? (@.location == "rear-right" ) ].model
 Query
 
 ```text
-
 # To get all the models across all the wheels
 $.*.wheels[*]
 
 # To get all the models for a car wheel
-
 $.car.wheels[*]
 ```
