@@ -4,7 +4,10 @@
 
 ### Querying from Root
 
+
+
 * Use a $ notation to start from the root element
+* All of the below uses jpath
 
 ```json
 {
@@ -50,7 +53,8 @@ Query and result:
 ```json
   $[0] - ["car"]
   $[3] - ["bike"]
-  $[0, 3] = ["car","bike"]
+  $[0,3] - ["car","bike"]
+  $[0:2] - ["car","bus","truck"]
 ```
 
 ---
@@ -78,4 +82,44 @@ $[?( @ > 40 )]
 
 Returns model whose location is rear-right
 $.car.wheels[? (@.location == "rear-right" ) ].model 
+```
+
+---
+
+### Querying All
+
+```json
+{
+  "car": {
+    "wheels": [
+      {
+        "model": "x"
+      },
+      {
+        "model": "y"
+      }
+    ]
+  },
+  "bus" : {
+    "wheels": [
+      {
+        "model": "x"
+      },
+      {
+        "model": "y"
+      }
+  }
+}
+```
+
+Query
+
+```text
+
+# To get all the models across all the wheels
+$.*.wheels[*]
+
+# To get all the models for a car wheel
+
+$.car.wheels[*]
 ```
