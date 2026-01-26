@@ -292,5 +292,313 @@ kubeadm token create --print-join-command
 kubectl get nodes 
 ```
 
-## 2. Upgrading the k8s cluster
+## 2. Upgrading the k8s cluster to the current release
 
+### Order of upgrade
+
+1. Control plane nodes
+2. Worker nodes
+
+### 1. Upgrade kubeadm on Control Plane
+
+#### 1. Check current version of kubeadm
+```shell
+kubeadm version
+```
+
+* Note the version
+```json
+{
+  "clientVersion": {
+    "major": "1",
+    "minor": "34",
+    "gitVersion": "v1.34.0",
+    "gitCommit": "f28b4c9efbca5c5c0af716d9f2d5702667ee8a45",
+    "gitTreeState": "clean",
+    "buildDate": "2025-08-27T10:15:59Z",
+    "goVersion": "go1.24.6",
+    "compiler": "gc",
+    "platform": "linux/amd64"
+  }
+}
+```
+
+#### 2. Check the latest available version to upgrade
+
+* The latest version is 1.34.3-1.1
+```shell
+apt-cache madison kubeadm
+
+kubeadm | 1.34.3-1.1 | https://pkgs.k8s.io/core:/stable:/v1.34/deb  Packages
+kubeadm | 1.34.2-1.1 | https://pkgs.k8s.io/core:/stable:/v1.34/deb  Packages
+kubeadm | 1.34.1-1.1 | https://pkgs.k8s.io/core:/stable:/v1.34/deb  Packages
+kubeadm | 1.34.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.34/deb  Packages
+```
+
+#### 3. Upgrade the kubeadm version
+
+```shell
+export KUBERNETES_UPGRADE_VERSION=1.34.3-1.1
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update -y && sudo apt-get install -y kubeadm="$KUBERNETES_UPGRADE_VERSION" && \
+sudo apt-mark hold kubeadm
+
+# decide on the upgrade version  
+kubeadm upgrade plan
+[preflight] Running pre-flight checks.
+[upgrade/config] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
+[upgrade/config] Use 'kubeadm init phase upload-config kubeadm --config your-config-file' to re-upload it.
+[upgrade] Running cluster health checks
+[upgrade] Fetching available versions to upgrade to
+[upgrade/versions] Cluster version: 1.34.3
+[upgrade/versions] kubeadm version: v1.34.3
+I0126 09:40:13.219638   56838 version.go:260] remote version is much newer: v1.35.0; falling back to: stable-1.34
+[upgrade/versions] Target version: v1.34.3
+[upgrade/versions] Latest version in the v1.34 series: v1.34.3
+
+```
+#### 4. Upgrade the kubeadm version
+
+```shell
+# Upgrade all the components.
+kube upgrade apply v1.34.3 
+
+# Check if all the versions have gotten upgraded
+kubectl get nodes -o yaml | grep -i 'apiserver'
+kubectl get nodes -o yaml | grep -i 'scheduler'
+```
+
+#### 5. Drain the controlplane
+
+```shell
+kubectl drain control-plane-1 --ignore-daemonsets
+```
+
+#### 6. Upgrade kubelet and kubectl
+
+```shell
+export KUBERNETES_UPGRADE_VERSION=1.34.3-1.1
+
+# replace x in 1.34.x-* with the latest patch version
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet="$KUBERNETES_UPGRADE_VERSION" kubectl="$KUBERNETES_UPGRADE_VERSION" && \
+sudo apt-mark hold kubelet kubectl
+
+# Check if kubectl and kubelet have been upgrade
+kubectl version
+kubelet --version
+
+# Restart kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+
+#### 7. Uncordon the control plane node
+```shell
+kubectl uncordon control-plane-1
+
+# Get node status
+# kubectl get nodes
+NAME              STATUS   ROLES           AGE    VERSION
+control-plane-1   Ready    control-plane   3h4m   v1.34.3
+worker-node-1     Ready    <none>          3h2m   v1.34.0
+worker-node-2     Ready    <none>          82m    v1.34.0
+```
+
+### 2. Upgrade kubeadm on Worker Node
+
+* Only change in the worker node is we do not do upgrade apply
+* We just run the upgrade command
+* On running the below command no changes are reflected when you run *kubectl get nodes*
+
+```shell
+
+# Upgrade to latest kubeadm before running the below command
+
+kubeadm upgrade node
+
+[upgrade] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
+[upgrade] Use 'kubeadm init phase upload-config kubeadm --config your-config-file' to re-upload it.
+[upgrade/preflight] Running pre-flight checks
+[upgrade/preflight] Skipping prepull. Not a control plane node.
+[upgrade/control-plane] Skipping phase. Not a control plane node.
+[upgrade/kubeconfig] Skipping phase. Not a control plane node.
+W0126 10:14:35.560818  116758 postupgrade.go:116] Using temporary directory /etc/kubernetes/tmp/kubeadm-kubelet-config3348452652 for kubelet config. To override it set the environment variable KUBEADM_UPGRADE_DRYRUN_DIR
+[upgrade] Backing up kubelet config file to /etc/kubernetes/tmp/kubeadm-kubelet-config3348452652/config.yaml
+[patches] Applied patch of type "application/strategic-merge-patch+json" to target "kubeletconfiguration"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[upgrade/kubelet-config] The kubelet configuration for this node was successfully upgraded!
+[upgrade/addon] Skipping the addon/coredns phase. Not a control plane node.
+[upgrade/addon] Skipping the addon/kube-proxy phase. Not a control plane node.
+```
+
+* Follow instructions of upgrade kubelet and kubectl as before
+* Same instructions to be followedo on worker-node-2
+
+### 3. Check if all services are up and running
+
+```shell
+kubectl get --raw='/readyz?verbose'
+
+[+]ping ok
+[+]log ok
+[+]etcd ok
+[+]etcd-readiness ok
+[+]informer-sync ok
+[+]poststarthook/start-apiserver-admission-initializer ok
+[+]poststarthook/generic-apiserver-start-informers ok
+[+]poststarthook/priority-and-fairness-config-consumer ok
+[+]poststarthook/priority-and-fairness-filter ok
+[+]poststarthook/storage-object-count-tracker-hook ok
+[+]poststarthook/start-apiextensions-informers ok
+[+]poststarthook/start-apiextensions-controllers ok
+[+]poststarthook/crd-informer-synced ok
+[+]poststarthook/start-system-namespaces-controller ok
+[+]poststarthook/start-cluster-authentication-info-controller ok
+[+]poststarthook/start-kube-apiserver-identity-lease-controller ok
+[+]poststarthook/start-kube-apiserver-identity-lease-garbage-collector ok
+[+]poststarthook/start-legacy-token-tracking-controller ok
+[+]poststarthook/start-service-ip-repair-controllers ok
+[+]poststarthook/rbac/bootstrap-roles ok
+[+]poststarthook/scheduling/bootstrap-system-priority-classes ok
+[+]poststarthook/priority-and-fairness-config-producer ok
+[+]poststarthook/bootstrap-controller ok
+[+]poststarthook/start-kubernetes-service-cidr-controller ok
+[+]poststarthook/aggregator-reload-proxy-client-cert ok
+[+]poststarthook/start-kube-aggregator-informers ok
+[+]poststarthook/apiservice-status-local-available-controller ok
+[+]poststarthook/apiservice-status-remote-available-controller ok
+[+]poststarthook/apiservice-registration-controller ok
+[+]poststarthook/apiservice-discovery-controller ok
+[+]poststarthook/kube-apiserver-autoregistration ok
+[+]autoregister-completion ok
+[+]poststarthook/apiservice-openapi-controller ok
+[+]poststarthook/apiservice-openapiv3-controller ok
+[+]shutdown ok
+readyz check passed
+
+# kubectl get po -n kube-system 
+NAME                                       READY   STATUS    RESTARTS      AGE
+calico-kube-controllers-6dfb8bbfd4-chvcl   1/1     Running   0             5m29s
+calico-node-bqkpm                          1/1     Running   0             3h20m
+calico-node-vvzwh                          1/1     Running   0             3h20m
+calico-node-z4hb9                          1/1     Running   0             101m
+coredns-66bc5c9577-5zv7t                   1/1     Running   0             13m
+coredns-66bc5c9577-qzjbz                   1/1     Running   0             5m29s
+etcd-control-plane-1                       1/1     Running   0             41m
+kube-apiserver-control-plane-1             1/1     Running   0             3h23m
+kube-controller-manager-control-plane-1    1/1     Running   1 (42m ago)   3h23m
+kube-proxy-4xx4m                           1/1     Running   0             101m
+kube-proxy-nrwtr                           1/1     Running   0             3h23m
+kube-proxy-sbwhs                           1/1     Running   0             3h21m
+kube-scheduler-control-plane-1             1/1     Running   1 (42m ago)   3h23m
+metrics-server-576c8c997c-8kd9r            1/1     Running   0             5m29s
+```
+
+
+## 3. Upgrading the k8s cluster - Next minor release
+
+### 1. Modify current package repository
+
+```shell
+# On your system, this configuration file could have a different name
+pager /etc/apt/sources.list.d/kubernetes.list
+
+# Change it to the next minor release
+cat /etc/apt/sources.list.d/kubernetes.list
+
+# Comment this line out
+# deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /
+
+sudo apt update -y
+```
+
+### 2. Upgrade to the latest kubeadm
+
+```shell
+# Drain the node
+kubectl drain control-plane-1 --ignore-daemonsets
+```
+
+```shell
+export KUBERNETES_UPGRADE_VERSION="1.35.0-1.1"
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update -y && sudo apt-get install -y kubeadm="$KUBERNETES_UPGRADE_VERSION" && \
+sudo apt-mark hold kubeadm
+```
+
+```shell
+# kubeadm upgrade plan
+[preflight] Running pre-flight checks.
+[upgrade/config] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
+[upgrade/config] Use 'kubeadm init phase upload-config kubeadm --config your-config-file' to re-upload it.
+[upgrade] Running cluster health checks
+[upgrade] Fetching available versions to upgrade to
+[upgrade/versions] Cluster version: 1.34.3
+[upgrade/versions] kubeadm version: v1.35.0
+[upgrade/versions] Target version: v1.35.0
+[upgrade/versions] Latest version in the v1.34 series: v1.34.3
+
+Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':
+COMPONENT   NODE              CURRENT   TARGET
+kubelet     control-plane-1   v1.34.3   v1.35.0
+kubelet     worker-node-1     v1.34.3   v1.35.0
+kubelet     worker-node-2     v1.34.3   v1.35.0
+
+Upgrade to the latest stable version:
+
+COMPONENT                 NODE              CURRENT   TARGET
+kube-apiserver            control-plane-1   v1.34.3   v1.35.0
+kube-controller-manager   control-plane-1   v1.34.3   v1.35.0
+kube-scheduler            control-plane-1   v1.34.3   v1.35.0
+kube-proxy                                  1.34.3    v1.35.0
+CoreDNS                                     v1.12.1   v1.13.1
+etcd                      control-plane-1   3.6.5-0   3.6.6-0
+
+You can now apply the upgrade by executing the following command:
+
+	kubeadm upgrade apply v1.35.0
+
+_____________________________________________________________________
+
+
+The table below shows the current state of component configs as understood by this version of kubeadm.
+Configs that have a "yes" mark in the "MANUAL UPGRADE REQUIRED" column require manual config upgrade or
+resetting to kubeadm defaults before a successful upgrade can be performed. The version to manually
+upgrade to is denoted in the "PREFERRED VERSION" column.
+
+API GROUP                 CURRENT VERSION   PREFERRED VERSION   MANUAL UPGRADE REQUIRED
+kubeproxy.config.k8s.io   v1alpha1          v1alpha1            no
+kubelet.config.k8s.io     v1beta1           v1beta1             no
+_____________________________________________________________________
+
+```
+
+### 3. Upgrade to the latest kubelet and kubectl
+
+```shell
+export KUBERNETES_UPGRADE_VERSION=1.35.0-1.1
+
+# replace x in 1.34.x-* with the latest patch version
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet="$KUBERNETES_UPGRADE_VERSION" kubectl="$KUBERNETES_UPGRADE_VERSION" && \
+sudo apt-mark hold kubelet kubectl
+
+# Check if kubectl and kubelet have been upgrade
+kubectl version
+kubelet --version
+
+# Restart kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+
+### 4. Uncordon control-plane-1
+```shell
+kubectl uncordon control-plane-1
+```
+
+### 5. Upgrade the worker nodes as mentioned above.
