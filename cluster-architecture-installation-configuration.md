@@ -602,3 +602,6 @@ kubectl uncordon control-plane-1
 ```
 
 ### 5. Upgrade the worker nodes as mentioned above.
+
+## Flannel
+[If flannel CNI is used](additional-resources/flannel.md)
