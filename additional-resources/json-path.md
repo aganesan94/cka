@@ -59,6 +59,7 @@ Query and result:
   $[-1] - last index in the array
   $[-1:0] - start from the last element all the way to the end.
   $[-3:0] - last 3 elements , same as $[-3] or $[-3:]
+  $[0,2] - ["car","truck"]
 ```
 
 ---
