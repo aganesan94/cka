@@ -164,4 +164,87 @@ kubeadm init --pod-network-cidr=192.168.0.0/16 --cri-socket=unix:///var/run/cont
 
 ```
 
-[Log anaysis of kubeadm installation is found here](additional-resources/kubeadm-logs.md)
+[Important: Post Installation kubeadm](additional-resources/kubeadm-logs.md)
+
+
+#### 14. Setting up calico
+
+* This is the CNI
+
+```shell
+kubectl apply -f  https://raw.githubusercontent.com/projectcalico/calico/v3.31.3/manifests/calico.yaml
+
+# Ensure cni is installed correctly, notice calico files
+ls -la /etc/cni/net.d/
+total 16
+drwx------ 2 root root 4096 Jan 26 05:57 .
+drwxr-xr-x 3 root root 4096 Jan 26 03:33 ..
+-rw-r--r-- 1 root root    0 Aug 28 17:00 .kubernetes-cni-keep
+-rw------- 1 root root  584 Jan 26 05:57 10-calico.conflist
+-rw------- 1 root root 2796 Jan 26 05:57 calico-kubeconfig
+
+```
+
+#### 15. Double check if nodes are ready in the control plane
+
+##### Ensure node is ready
+```shell
+kubectl get nodes -o wide
+
+NAME              STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+control-plane-1   Ready    control-plane   22m   v1.34.0   165.22.213.191   <none>        Ubuntu 24.04.3 LTS   6.8.0-71-generic   containerd://1.7.28
+```
+
+##### Ensure all pods are running
+
+* Notice the pods running include
+  * controller-manager
+  * api-server
+  * scheduler
+  * etcd
+  * coredns
+  * networking (calico in this case)
+
+```shell
+
+
+kubectl get po -n kube-system
+
+NAME                                       READY   STATUS    RESTARTS   AGE
+calico-kube-controllers-6dfb8bbfd4-sj4zj   1/1     Running   0          3m10s
+calico-node-7hf5k                          1/1     Running   0          3m10s
+coredns-66bc5c9577-mjx7z                   1/1     Running   0          23m
+coredns-66bc5c9577-mvdjr                   1/1     Running   0          23m
+etcd-control-plane-1                       1/1     Running   0          23m
+kube-apiserver-control-plane-1             1/1     Running   0          23m
+kube-controller-manager-control-plane-1    1/1     Running   0          23m
+kube-proxy-v2rl4                           1/1     Running   0          23m
+kube-scheduler-control-plane-1             1/1     Running   0          23m
+
+```
+
+#### 16. Setting up the worker node - 1
+
+```shell
+# Refer to join command in the post installation logs
+kubeadm join 165.22.213.191:6443 --token at07se.0qu1ysne9uhv2tcs \
+	--discovery-token-ca-cert-hash sha256:0ac795cf97cf7dd60048b9a3affae0a3446549192441db61be49dae90120b75d
+```
+
+[Important: Post Installation kubeadm on worker](additional-resources/kubeadm-logs.md)
+
+
+##### Ensure node is ready
+```shell
+kubectl get nodes
+
+NAME              STATUS   ROLES           AGE     VERSION
+control-plane-1   Ready    control-plane   29m     v1.34.0
+worker-node-1     Ready    <none>          3m52s   v1.34.0
+```
+
+#### 17. Install metrics server
+
+```shell
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml   
+```

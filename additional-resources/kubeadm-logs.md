@@ -1,5 +1,15 @@
 # Analyzing the logs of the kubeadm init
 
+<!-- TOC -->
+* [Analyzing the logs of the kubeadm init](#analyzing-the-logs-of-the-kubeadm-init)
+  * [Part 1: Preflight checks](#part-1-preflight-checks)
+  * [Part 2: Generating certificates](#part-2-generating-certificates)
+  * [Part 3: Generating kube configurations](#part-3-generating-kube-configurations)
+  * [Part 4: Generating manifests](#part-4-generating-manifests)
+  * [Part 5: Commands to run post installation](#part-5-commands-to-run-post-installation)
+  * [Part 6: Post installation logs on worker node](#part-6-post-installation-logs-on-worker-node)
+<!-- TOC -->
+
 ## Part 1: Preflight checks
 
 ```shell
@@ -35,7 +45,7 @@ I0126 05:35:59.600706    5876 version.go:260] remote version is much newer: v1.3
 [certs] Generating "sa" key and public key
 ```
 
-### Part 3: Generating kube configurations
+## Part 3: Generating kube configurations
 
 * Kubernetes configuration directory folder: */etc/kubernetes*
 
@@ -48,7 +58,7 @@ I0126 05:35:59.600706    5876 version.go:260] remote version is much newer: v1.3
 [kubeconfig] Writing "scheduler.conf" kubeconfig file
 ```
 
-### Part 4:
+## Part 4: Generating manifests
 
 * Kubernetes manifest files folder: */etc/kubernetes/manifests*
 * Starting up the
@@ -95,7 +105,7 @@ I0126 05:35:59.600706    5876 version.go:260] remote version is much newer: v1.3
 [addons] Applied essential addon: kube-proxy
 ```
 
-### Part 5: Commands to run post installation
+## Part 5: Commands to run post installation
 
 ```shell
 Your Kubernetes control-plane has initialized successfully!
@@ -119,4 +129,29 @@ Then you can join any number of worker nodes by running the following on each as
 kubeadm join 165.22.213.191:6443 --token at07se.0qu1ysne9uhv2tcs \
 	--discovery-token-ca-cert-hash sha256:0ac795cf97cf7dd60048b9a3affae0a3446549192441db61be49dae90120b75d 
 
+```
+
+
+## Part 6: Post installation logs on worker node
+
+```shell
+ kubeadm join 165.22.213.191:6443 --token at07se.0qu1ysne9uhv2tcs \
+        --discovery-token-ca-cert-hash sha256:0ac795cf97cf7dd60048b9a3affae0a3446549192441db61be49dae90120b75d
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the "kubeadm-config" ConfigMap in namespace "kube-system"...
+[preflight] Use 'kubeadm init phase upload-config kubeadm --config your-config-file' to re-upload it.
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/instance-config.yaml"
+[patches] Applied patch of type "application/strategic-merge-patch+json" to target "kubeletconfiguration"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+[kubelet-check] The kubelet is healthy after 1.502263269s
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
