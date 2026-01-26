@@ -1,5 +1,6 @@
 # Introduction
 
+![alt text](additional-resources/2025-cka-syllabus.png)
 
 # kube-proxy
 

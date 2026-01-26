@@ -26,7 +26,7 @@ sudo cat /sys/class/dmi/id/product_uuid
 | Service     | Port      |
 |-------------|-----------|
 | Controller  | 10257     |
-| API Server  | 6443      |
+ff| API Server  | 6443      |
 | Scheduler   | 10259     |
 | ETCD server | 2379-2380 |
 | Kubelet     | 10250     |
@@ -78,6 +78,9 @@ sudo systemctl start containerd.service
 #### 8. Generate config.toml
 
 ```shell
+# Create containerd directory
+sudo mkdir -p /etc/containerd/
+
 # Generate the default containerd configuration
 sudo containerd config default | sudo tee /etc/containerd/config.toml
 
@@ -145,9 +148,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 echo "KUBEADM Version: $(kubeadm version)"
 echo "kubectl Version: $(kubectl version)"
 echo "kubelet Version: $(kubelet --version)"
-
-#Enable kubelet
-sudo systemctl enable --now kubelet
 
 # Check what version are available
 apt-cache madison kubelet
@@ -246,5 +246,51 @@ worker-node-1     Ready    <none>          3m52s   v1.34.0
 #### 17. Install metrics server
 
 ```shell
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml   
+wget https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# Edit and add the following line --kubelet-insecure-tls to
+      k8s-app: metrics-server
+    spec:
+      containers:
+      - args:
+        - --cert-dir=/tmp
+        - --secure-port=10250
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        - --kubelet-insecure-tls
+    
+# Set it up
+k create -f components.yaml    
 ```
+
+#### 18. Install nginx
+
+```shell
+kubectl run nginx-pod --image=nginx
+```
+
+#### 19. Ensure metrics server is working
+
+```shell
+# kubectl top nodes
+NAME              CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+control-plane-1   168m         8%       1143Mi          61%         
+worker-node-1     149m         7%       917Mi           49% 
+```
+
+#### 20. Adding another worker node
+
+* Repeat steps from step 1 to step 12
+* The following need to be installed in the new worker-node-2
+
+```shell
+# This is should provide the script to use to join the k8s cluster
+kubeadm token create --print-join-command
+
+# Check and verify if the new node has joined the node
+kubectl get nodes 
+```
+
+## 2. Upgrading the k8s cluster
+
