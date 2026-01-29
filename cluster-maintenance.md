@@ -605,3 +605,33 @@ kubectl uncordon control-plane-1
 
 ## Flannel
 [If flannel CNI is used](additional-resources/flannel.md)
+
+
+# Cluster Maintenance
+
+* If one of the worker nodes goes down and does not come back up in 5 minutes,
+  the scheduler terminates the pods and moves them to another worker node.
+* The pod eviction time out is 5 minutes by default
+
+## Right step
+
+1. Drain the node
+2. update the OS
+3. uncordon the node
+
+* Note: The difference between cordon and drain is that cordon stops any pods
+  from being scheduled on the node*
+
+* After uncordoning the node only new pods will be scheduled
+* When there is a pod in a node which is not a part of the deployment
+
+# ETCD Snapshot
+
+1. Stop etcd server
+2. Take a snapshot
+3. Check the status of the snapshot
+4. stop kube-api-server
+5. Restore the etcd cluster (Ensure the data is restored to a different data directory and the etcd.yaml updates to refer to the new directory)
+6. Reload daemon
+7. Restart etcd
+8. Restart kube-api-server
