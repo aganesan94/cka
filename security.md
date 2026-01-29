@@ -94,8 +94,39 @@ openssl x509 -in <cert-path> -text -noout
 
 *Note: Almost all certificates can be located at /etc/kubernetes/pki/api-server.yaml*
 
-# Managing certificates
+## Managing certificates
 
 1. Generate a certificate with a key
 2. Create a Certificate signing request.
 3. approve/deny csr
+
+## Kubeconfig
+
+* Tools: kubectx && kubens can be used for faster switching of kubecontext
+* Import kubeconfig to path
+
+```shell
+export KUBECONFIG=<path>
+
+kubectl config --kubeconfig=<path> 
+```
+
+
+## RBAC
+
+* Role - gives access to resources.  apiGroups/resourceNames/resources/verbs
+* Rolebinding - binds role to a user or service account
+
+* 3 types of authorizations: Node,RBAC, ABAC
+* configured in /etc/kubernetes/manifests/kube-apiserver.yaml
+* Checking if a particular user has access to the resource
+
+```shell
+ kubectl auth can-i list pods --as=<user>
+```
+
+* When creating a role ensure to use 
+```shell
+kubectl api-resources -o wide
+```
+
