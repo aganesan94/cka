@@ -130,3 +130,6 @@ kubectl config --kubeconfig=<path>
 kubectl api-resources -o wide
 ```
 
+## Custom Resource Definition (CRD)
+
+[More here](additional-resources/crd.md)
