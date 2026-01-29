@@ -93,3 +93,9 @@ openssl x509 -in <cert-path> -text -noout
 ```
 
 *Note: Almost all certificates can be located at /etc/kubernetes/pki/api-server.yaml*
+
+# Managing certificates
+
+1. Generate a certificate with a key
+2. Create a Certificate signing request.
+3. approve/deny csr
