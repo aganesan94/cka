@@ -36,6 +36,12 @@ kubectl run nginx --image=nginx --dry-run=client -o yaml --command sleep 5000
   * configMapKeyRef
   * secretRef
   * valueFrom 
+
+---
+
+* [Environment](additional-resources/environment.md)
+* [Secrets](additional-resources/secrets.md)
+* [ConfigMaps](additional-resources/configmaps.md)
  
 ##  Multiple Container pods
   * Refer to section to be able to debug logs 
@@ -68,4 +74,4 @@ Search for (kubetl autoscale) in https://kubernetes.io/docs/concepts/workloads/a
 
 * Inplace changing of resources limit in pods is limited to cpu and memory only
 
-![HPA-vs-VPA](additional-resources/VPA-vs-HPA.png)
+

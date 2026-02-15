@@ -118,7 +118,7 @@ spec:
       defaultMode: 0400
 ```
 
-### 4- Injecting specific secrets only (without volume mount)
+### 4- Injecting specific secrets only (without volume mount) as env
 
 ```yaml
 apiVersion: v1
@@ -142,7 +142,7 @@ spec:
           key: db-username
 ```
 
-### 5- Injecting all variables of a secret (without volume mount)
+### 5- Injecting all variables of a secret (without volume mount) as env
 
 ```yaml
 apiVersion: v1
