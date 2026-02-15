@@ -2,7 +2,7 @@
 
 ## Manual Scheduling
 
-* Used whenwe do not have a scheduler
+* Used when we do not have a scheduler
 * Pod can be scheduled manually via nodeName
 * Whether a scheduler is available or not can be found using the
 

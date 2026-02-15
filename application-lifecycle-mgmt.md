@@ -50,10 +50,11 @@ kubectl run nginx --image=nginx --dry-run=client -o yaml --command sleep 5000
 * Vertical: Increasing the size of existing server (increasing resources on existing pods)
 * Horizontal: Add new servers (more pods)
 * Works on deployments, replicasets and statefulsets
+* resources field needs to be provided in the deployment for scaling to work.
 
 ### 2 types of scaling
 
-Horizontal and Vertical
+* Horizontal and Vertical
    * Manual
      * kubeadm join
      * kubectl scale
@@ -63,6 +64,8 @@ Horizontal and Vertical
      * Horizontal Pod autoscaler
      * Vertical Pod autoscaler
 
-```shell
-kubectl autoscale deployment 
-```
+Search for (kubetl autoscale) in https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
+
+* Inplace changing of resources limit in pods is limited to cpu and memory only
+
+![HPA-vs-VPA](additional-resources/VPA-vs-HPA.png)
