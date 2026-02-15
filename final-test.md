@@ -36,6 +36,9 @@ kubectl label nodes <your-node-name> disktype=ssd
 
 # When adding commands, add to the end
 k run static-busybox --image=busybox --dry-run=client -o yaml -- sh -c sleep 1000
+
+# deploy a new image of the pod
+kubectl set image deployment/<name> <container-name>=<image>
 ```
 
 
@@ -67,6 +70,8 @@ spec:
         - "-c"
         - echo Hello Kubernetes! && sleep 3600
 ```
+
+When drafting a command ensure that the parameter of integer is always in double quotes.
 
 ### If pod is in pending state the following items to check
 
